@@ -9,6 +9,7 @@
   let done = store.get("lugati.done", {});       // {lessonId:true}
   let scores = store.get("lugati.scores", []);   // [{d, s, n, topic}]
   const saveDone = () => store.set("lugati.done", done);
+  let who = store.get("lugati.name", "سوسو");
 
   /* ---------- أدوات ---------- */
   const $app = document.getElementById("app");
@@ -47,7 +48,8 @@
     }).join("");
     $app.innerHTML = `
       <section class="card">
-        <h2>تقدمك في الفصل الأول</h2>
+        <h2>أهلًا يا ${esc(who)} 🌸 <button class="chip" id="nameBtn" style="font-size:.75rem">تغيير الاسم</button></h2>
+        <p class="muted" style="margin:0">خطوة صغيرة كل يوم تصنع فرقًا كبيرًا في لغتي 💪</p>
         <div class="progress" role="progressbar" aria-valuenow="${pct(d, total)}" aria-valuemin="0" aria-valuemax="100"><i style="width:${pct(d, total)}%"></i></div>
         <div class="stat"><div><b>${num(d)}</b>درس منجز</div><div><b>${num(total - d)}</b>متبقٍّ</div><div><b>${best === null ? "–" : num(best) + "٪"}</b>أفضل نتيجة</div></div>
         ${next ? `<p class="row" style="margin:12px 0 0"><a class="btn" href="#/lesson/${next.id}">تابع: ${esc(next.title)}</a></p>` : `<p style="margin:10px 0 0">🎉 أنهيت جميع الدروس!</p>`}
@@ -58,6 +60,7 @@
         ${types.map((t) => `<button class="chip ${filterType === t ? "on" : ""}" data-t="${t}">${TYPES[t].n}</button>`).join("")}
       </div>
       ${units || `<p class="muted">لا توجد نتائج.</p>`}`;
+    document.getElementById("nameBtn").onclick = () => { const n = prompt("اكتبي الاسم:", who); if (n && n.trim()) { who = n.trim().slice(0, 20); store.set("lugati.name", who); viewHome(); } };
     const q = document.getElementById("q");
     q.addEventListener("input", () => { query = q.value.trim(); const pos = q.selectionStart; viewHome(); const n = document.getElementById("q"); n.focus(); n.setSelectionRange(pos, pos); });
     $app.querySelectorAll(".chip").forEach((c) => c.addEventListener("click", () => { filterType = c.dataset.t; viewHome(); }));
@@ -148,7 +151,7 @@
     scores.push({ d: Date.now(), s: run.s, n: run.qs.length, topic: run.name });
     scores = scores.slice(-30); store.set("lugati.scores", scores);
     const p = pct(run.s, run.qs.length);
-    const msg = p >= 90 ? "ممتاز! 🌟" : p >= 70 ? "جيد جدًا 👏" : p >= 50 ? "جيد، راجع الأخطاء 💪" : "راجع الدرس ثم أعد المحاولة 📖";
+    const msg = p >= 90 ? `ممتازة يا ${who}! 🌟` : p >= 70 ? `جيد جدًا يا ${who} 👏` : p >= 50 ? `جيد يا ${who}، راجعي الأخطاء 💪` : `لا بأس يا ${who}، راجعي الدرس وأعيدي المحاولة، أنتِ قادرة 📖`;
     const keys = [...new Set(run.wrong.map((q) => q.rev))];
     $app.innerHTML = `<section class="card"><div class="score">${num(run.s)} / ${num(run.qs.length)}</div><p style="text-align:center">${msg}</p>
       ${keys.length ? `<h3>راجع هذه الدروس:</h3>${keys.map((k) => { const l = LESSONS.find((x) => x.rev === k); return l ? `<p><a href="#/lesson/${l.id}">${esc(REVIEW[k].title)}</a></p>` : ""; }).join("")}` : ""}
