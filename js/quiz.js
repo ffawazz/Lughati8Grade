@@ -44,7 +44,9 @@
     if (q.type === "mcq" || q.type === "tf") {
       const opts = q.type === "tf" ? ["صح", "خطأ"] : q.o;
       const ans = q.type === "tf" ? (q.a ? 0 : 1) : q.a;
-      body.innerHTML = '<div class="opts">' + opts.map((o, i) => '<button class="opt" data-i="' + i + '">' + esc(o) + "</button>").join("") + "</div>";
+      // نخلط ترتيب الخيارات في الاختيار من متعدد حتى لا تكون الإجابة الصحيحة في موضع ثابت (صح/خطأ يبقى بترتيبه)
+      const order = q.type === "tf" ? opts.map((_, i) => i) : shuffle(opts.map((_, i) => i));
+      body.innerHTML = '<div class="opts">' + order.map((i) => '<button class="opt" data-i="' + i + '">' + esc(opts[i]) + "</button>").join("") + "</div>";
       body.querySelectorAll(".opt").forEach((b) => b.onclick = () => {
         if (answered) return; const i = +b.dataset.i;
         body.querySelectorAll(".opt").forEach((x) => { x.disabled = true; if (+x.dataset.i === ans) x.classList.add("right"); });

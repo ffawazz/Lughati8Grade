@@ -55,6 +55,41 @@ const check = (c, m) => { if (!c) errs.push("FAIL: " + m); else console.log("ok 
     if ((await p.textContent("#app")).includes("جولة جديدة")) break;
   }
   check((await p.textContent("#app")).includes("جولة جديدة"), "lesson 2 vocabulary round completes (mcq + match mix)");
+  /* فحص بنيوي لكل أسئلة المحتوى (يكشف أخطاء الكتابة اليدوية) */
+  await p.goto(app);
+  const bad = await p.evaluate(() => {
+    const L = window.LUGHATI, out = [], pool = L.buildPool(L.lessons());
+    pool.forEach((q) => {
+      const id = q.id; const miss = (m) => out.push(id + ": " + m);
+      if (!q.skill) miss("no skill"); if (!q.src) miss("no src");
+      if (q.type === "mcq") { if (!(q.a >= 0 && q.a < q.o.length)) miss("answer index out of range"); if (new Set(q.o).size !== q.o.length) miss("duplicate options"); if (q.o.length < 3) miss("fewer than 3 options"); }
+      if (q.type === "order") { if ([...q.words].sort().join("|") !== [...q.a].sort().join("|")) miss("order answer is not a permutation of words"); }
+      if (q.type === "sort") { if (!q.items.every((it) => it[1] >= 0 && it[1] < q.buckets.length)) miss("sort bucket index"); }
+      if (q.type === "match") { if (new Set(q.pairs.map((x) => x[1])).size !== q.pairs.length) miss("duplicate match targets"); }
+      if (q.type === "short" || q.type === "open") { if (!q.a || (Array.isArray(q.a) && !q.a.length)) miss("empty answer"); }
+      if (q.type === "dictation" && !q.text) miss("empty dictation");
+    });
+    const ids = pool.map((q) => q.id); if (new Set(ids).size !== ids.length) out.push("duplicate question ids");
+    return { n: pool.length, out };
+  });
+  check(bad.out.length === 0, "all " + bad.n + " content questions are structurally valid" + (bad.out.length ? ": " + bad.out.slice(0, 5).join(" | ") : ""));
+  const pos = await p.evaluate(() => { const L = window.LUGHATI, seen = new Set(); const q = { id: "t", type: "mcq", skill: "grammar", tag: "t", src: "t", q: "x", o: ["a", "b", "c", "d"], a: 0, why: "" };
+    for (let i = 0; i < 60; i++) { const d = document.createElement("div"); L.renderQuestion(d, q, () => {}); const btns = [...d.querySelectorAll(".opt")]; seen.add(btns.findIndex((b) => +b.dataset.i === 0)); } return [...seen].sort(); });
+  check(pos.length >= 3, "correct answer position varies across displays: positions " + pos);
+  /* دروس النحو الجديدة: جولة كاملة لكل درس بكل أنواع الأسئلة */
+  for (const lid of ["u1-zarf", "u1-neg", "u1-faail"]) {
+    await p.goto(app + "#/grammarq/" + lid);
+    const kinds = new Set();
+    for (let i = 0; i < 10; i++) {
+      if (await p.$(".matchgrid")) { kinds.add("match"); const n = (await p.$$("[data-l]")).length; for (let k = 0; k < n; k++) { await p.click("[data-l='" + k + "']"); await p.click("[data-r='" + k + "']"); } }
+      else if (await p.$("#qcard textarea")) { kinds.add("open"); await p.click("#chk"); await p.click("#yes"); }
+      else if (await p.$(".opt")) { kinds.add((await p.$$(".opt")).length === 2 ? "tf" : "mcq"); await p.click(".opt >> nth=0"); }
+      else break;
+      await p.click("#nx");
+      if ((await p.textContent("#app")).includes("جولة جديدة")) break;
+    }
+    check((await p.textContent("#app")).includes("جولة جديدة"), lid + " round completes; types: " + [...kinds]);
+  }
   /* الدرس الثالث (الإملاء): أنواع الأسئلة كلها */
   await p.goto(app + "#/spelling/u1-l3"); check((await p.$$(".pts li")).length === 7, "hamza lesson shows the book rule (7 points)"); await noOverflow(p, "spelling rule page");
   await p.goto(app + "#/spellq/u1-l3");
