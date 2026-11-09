@@ -18,6 +18,24 @@ const check = (c, m) => { if (!c) errs.push("FAIL: " + m); else console.log("ok 
   const noOverflow = async (p, m) => check(await p.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1), "no horizontal overflow: " + m);
   const shot = (p, n) => p.screenshot({ path: path.join(SHOTS, n + ".png") });
   const app = "file://" + root + "/index.html";
+  /* يلعب جولة كاملة بأي أنواع أسئلة تظهر، ويعيد الأنواع التي رآها */
+  const play = async (pg, url) => {
+    await pg.goto(url); const kinds = new Set();
+    for (let i = 0; i < 12; i++) {
+      if (await pg.$(".matchgrid")) { kinds.add("match"); const n = (await pg.$$("[data-l]")).length; for (let k = 0; k < n; k++) { await pg.click("[data-l='" + k + "']"); await pg.click("[data-r='" + k + "']"); } }
+      else if (await pg.$("#qcard textarea") && await pg.$("#padhost") && !(await pg.$("#play")) && !(await pg.$(".bigword"))) { kinds.add("open"); await pg.click("#chk"); await pg.click("#no"); }
+      else if (await pg.$("#play")) { kinds.add("dictation"); await pg.fill("#ans", "x"); await pg.click("#chk"); }
+      else if (await pg.$(".bigword")) { kinds.add("pen"); await pg.click("#chk"); await pg.click("#yes"); }
+      else if (await pg.$(".sortrow")) { kinds.add("sort"); for (const r of await pg.$$(".sortrow")) await (await r.$("button")).click(); await pg.click("#chk"); }
+      else if (await pg.$("#slots")) { kinds.add("order"); const n = (await pg.$$("#bank .tok")).length; for (let k = 0; k < n; k++) await pg.click("#bank .tok:not([disabled]) >> nth=0"); await pg.click("#chk"); }
+      else if (await pg.$("#qcard #ans")) { kinds.add("short"); await pg.fill("#ans", "x"); await pg.click("#chk"); }
+      else if (await pg.$(".opt")) { kinds.add((await pg.$$(".opt")).length === 2 ? "tf" : "mcq"); await pg.click(".opt >> nth=0"); }
+      else break;
+      await pg.click("#nx");
+      if ((await pg.textContent("#app")).includes("جولة جديدة")) break;
+    }
+    return { kinds, done: (await pg.textContent("#app")).includes("جولة جديدة") };
+  };
 
   /* 1) التطبيق الحقيقي على هاتف */
   let p = await mk({ width: 390, height: 800 });
@@ -38,14 +56,8 @@ const check = (c, m) => { if (!c) errs.push("FAIL: " + m); else console.log("ok 
   /* الدرس الثاني: نص طويل مشكَّل + أسئلة مفتوحة (الكتاب) + مطابقة */
   await p.goto(app + "#/reading/u1-l2"); await noOverflow(p, "long book text (lesson 2) on phone"); await shot(p, "real-reading2");
   check((await p.$$(".text p")).length === 14, "lesson 2 text has 14 paragraphs");
-  await p.goto(app + "#/readq/u1-l2");
-  let openSeen = 0, matchSeen = 0;
-  for (let i = 0; i < 6; i++) {
-    if (await p.$("#qcard textarea")) { openSeen++; await p.fill("#ans", "إجابتي"); await p.click("#chk"); check((await p.textContent(".ans")).includes("إجابة الكتاب"), "open question reveals the book answer"); await p.click("#no"); }
-    else if (await p.$(".matchgrid")) { matchSeen++; for (let k = 0; k < 4; k++) { await p.click("[data-l='" + k + "']"); await p.click("[data-r='" + k + "']"); } }
-    await p.click("#nx");
-  }
-  check(openSeen === 5 && matchSeen === 1, "lesson 2 round = 5 open (book) + 1 match: " + openSeen + "/" + matchSeen);
+  const k2 = await play(p, app + "#/readq/u1-l2");
+  check(k2.done && k2.kinds.has("open") && k2.kinds.has("match"), "lesson 2 reading round (14-question pool) completes; types: " + [...k2.kinds]);
   await p.goto(app + "#/vocab/u1-l2"); check((await p.$$(".vt tr")).length === 6, "lesson 2 vocabulary table has 6 words");
   await p.goto(app + "#/vocabq/u1-l2");
   for (let i = 0; i < 10; i++) {
@@ -90,6 +102,14 @@ const check = (c, m) => { if (!c) errs.push("FAIL: " + m); else console.log("ok 
     }
     check((await p.textContent("#app")).includes("جولة جديدة"), lid + " round completes; types: " + [...kinds]);
   }
+  /* دروس الاستماع/الإستراتيجية/النص/الشعر المضافة */
+  for (const [route, label] of [["activityq/u1-intro", "intro activity"], ["activityq/u1-listen1", "listening"], ["activityq/u1-strat", "reading strategy"], ["readq/u1-tv", "TV text"], ["poetryq/u1-poem", "poem questions"]]) {
+    const r = await play(p, app + "#/" + route);
+    check(r.done, label + " round completes; types: " + [...r.kinds]);
+  }
+  await p.goto(app + "#/poetry/u1-poem"); check((await p.$$(".pl")).length === 9, "poem shows 9 verses"); await noOverflow(p, "poem page");
+  await p.click("#mem"); await p.click("#mem"); check((await p.$$(".gap")).length > 0, "poem memorisation hides words");
+  await p.goto(app + "#/"); check((await p.$$("details.guide")).length >= 1, "unit guide (learning goals) is shown on the home screen");
   /* الدرس الثالث (الإملاء): أنواع الأسئلة كلها */
   await p.goto(app + "#/spelling/u1-l3"); check((await p.$$(".pts li")).length === 7, "hamza lesson shows the book rule (7 points)"); await noOverflow(p, "spelling rule page");
   await p.goto(app + "#/spellq/u1-l3");

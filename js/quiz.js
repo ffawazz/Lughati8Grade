@@ -11,6 +11,8 @@
     lessons.forEach((l) => {
       ((l.reading && l.reading.questions) || []).forEach((q, i) => add(q, l.id + ":r" + i, { sec: "reading", lid: l.id }));
       ((l.grammar && l.grammar.exercises) || []).forEach((q, i) => add(q, l.id + ":g" + i, { sec: "grammar", lid: l.id }));
+      ((l.activity && l.activity.questions) || []).forEach((q, i) => add(q, l.id + ":a" + i, { sec: "activity", lid: l.id }));
+      ((l.poetry && l.poetry.questions) || []).forEach((q, i) => add(q, l.id + ":po" + i, { sec: "poetry", lid: l.id }));
       (l.vocabQ || []).forEach((q, i) => add(q, l.id + ":vq" + i, { sec: "vocab", lid: l.id }));
       ((l.spelling && l.spelling.exercises) || []).forEach((q, i) => add(q, l.id + ":s" + i, { sec: "spelling", lid: l.id }));
       ((l.spelling && l.spelling.dictation) || []).forEach((d, i) => add({ type: "dictation", skill: "spelling", tag: d.tag || "إملاء", text: d.text, src: d.src, q: "أستمع ثم أكتب الجملة" }, l.id + ":d" + i, { sec: "spelling", lid: l.id }));

@@ -45,3 +45,4 @@ h2{font-size:1.25rem;margin:.2em 0 .5em}h3{font-size:1.05rem;margin:.1em 0 .4em}
 .tabs2{margin:6px 0}
 @media(max-width:420px){.mods{grid-template-columns:1fr}.bar{grid-template-columns:90px 1fr 40px}}
 @media(prefers-reduced-motion:reduce){*{transition:none!important}}
+details.guide{margin:6px 0 10px;background:var(--soft);border-radius:12px;padding:6px 12px}details.guide summary{cursor:pointer;font-weight:700;color:var(--accent)}

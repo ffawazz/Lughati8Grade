@@ -3,7 +3,7 @@
   "use strict";
   const L = window.LUGHATI, { $, esc, num, shuffle } = L, S = L.state;
   const app = $("#app"); L.initCurrent();
-  const SKILLS = { reading: "فهم المقروء", vocab: "المفردات", grammar: "النحو والصرف", spelling: "الإملاء", writing: "التعبير", poetry: "الشعر" };
+  const SKILLS = { reading: "فهم المقروء", vocab: "المفردات", grammar: "النحو والصرف", spelling: "الإملاء", writing: "التعبير", poetry: "الشعر", listening: "الاستماع", speaking: "التحدث" };
   const pct = (a, b) => (b ? Math.round(a / b * 100) : 0);
   const lessonById = (id) => L.lessons().find((l) => l.id === id);
   const has = (l, k) => {
@@ -11,6 +11,7 @@
     if (k === "vocab") return !!(l.vocab && l.vocab.length);
     if (k === "grammar") return !!(l.grammar && ((l.grammar.exercises || []).length || (l.grammar.rule || []).length));
     if (k === "spelling") return !!(l.spelling && ((l.spelling.exercises || []).length || (l.spelling.dictation || []).length || (l.spelling.pen || []).length || (l.spelling.rule || []).length));
+    if (k === "activity") return !!(l.activity && ((l.activity.rule || []).length || (l.activity.questions || []).length));
     if (k === "writing") return !!l.writing; if (k === "poetry") return !!l.poetry; return false;
   };
   const back = (id) => '<a class="back" href="#/lesson/' + id + '">‹ الدرس</a>';
@@ -29,6 +30,7 @@
       (cur ? '<p><a class="btn" href="#/lesson/' + cur.id + '">تابعي: ' + esc(cur.title) + "</a></p>" : "") +
       '<p class="row"><a class="btn alt" href="#/practice">تدريب مختلط</a>' + (due ? '<a class="btn alt" href="#/cards">بطاقات اليوم (' + num(due) + ")</a>" : "") + (S.mistakes.length ? '<a class="btn alt" href="#/mistakes">مراجعة الأخطاء</a>' : "") + "</p></section>" +
       L.units.map((u) => '<section class="card"><h3>الوحدة ' + num(u.id) + ": " + esc(u.title) + "</h3>" +
+        ((L.guides || {})[u.id] ? '<details class="guide"><summary>دليل الوحدة (ما سأتعلمه)</summary><p class="muted">أتوقع بمشيئة الله بعد دراستي هذه الوحدة أن أكون قادرة على:</p><ol class="pts">' + L.guides[u.id].goals.map((g) => "<li>" + esc(g) + "</li>").join("") + "</ol>" + (L.guides[u.id].texts ? "<p><b>نصوص الوحدة:</b> " + L.guides[u.id].texts.map(esc).join("، ") + "</p>" : "") + (L.guides[u.id].task ? "<p><b>الإنجاز:</b> " + esc(L.guides[u.id].task) + "</p>" : "") + srcNote(L.guides[u.id].src) + "</details>" : "") +
         u.lessons.map((l) => { const idx = all.findIndex((x) => x.id === l.id), lock = idx > S.current;
           return '<a class="lrow' + (lock ? " lock" : "") + '" href="' + (lock ? "#/" : "#/lesson/" + l.id) + '"><span>' + (lock ? "🔒" : S.done[l.id] ? "✅" : "📖") + "</span><span>" + esc(l.title) + '</span><small>ص ' + esc(l.page || "") + "</small></a>"; }).join("") + "</section>").join("") +
       '<p class="note">المحتوى من كتاب لغتي ثاني متوسط (ف١) عبر النسخة المحلولة في موقع كتبي. ولي الأمر يحدد الدرس الحالي من «ولي الأمر».</p>';
@@ -40,7 +42,8 @@
     const mod = (k, ico, name, hint) => '<a class="mod' + (has(l, k) ? "" : " off") + '" href="' + (has(l, k) ? "#/" + k + "/" + id : "#/lesson/" + id) + '"><span class="ico">' + ico + "</span><b>" + name + "</b><small>" + (has(l, k) ? hint : "لم يُضف بعد من الكتاب") + "</small></a>";
     app.innerHTML = '<a class="back" href="#/">‹ الدروس</a><h2>' + esc(l.title) + '</h2><p class="muted">الوحدة ' + num(l.unit.id) + " · ص " + esc(l.page || "") + '</p><div class="mods">' +
       mod("reading", "📖", "القراءة", "نص + أسئلة") + mod("vocab", "🔤", "المفردات", "بطاقات وتدريب") + mod("grammar", "✏️", "النحو والصرف", "قاعدة وتمارين") +
-      mod("spelling", "🔊", "الإملاء", "إملاء وكتابة") + mod("writing", "📝", "التعبير", "مهمة ونموذج") + mod("poetry", "🎼", "الشعر", "قراءة وحفظ") + "</div>" +
+      mod("spelling", "🔊", "الإملاء", "إملاء وكتابة") + mod("writing", "📝", "التعبير", "مهمة ونموذج") + mod("poetry", "🎼", "الشعر", "قراءة وحفظ") +
+      (has(l, "activity") ? mod("activity", l.activity.icon || "🎧", l.activity.name || "نشاط", "معلومات وأسئلة") : "") + "</div>" +
       '<p><button class="btn alt" id="dn">' + (S.done[id] ? "إلغاء إنجاز الدرس" : "✓ أنهيت هذا الدرس") + "</button></p>";
     $("#dn").onclick = () => { S.done[id] = !S.done[id]; L.save(); lesson(id); };
   }
@@ -87,6 +90,14 @@
     show();
   }
 
+  /* ---------- نشاط (استماع / تحدث / مشروع): بطاقات معلومات من الكتاب + أسئلة ---------- */
+  function activity(id) {
+    const l = lessonById(id), a = l.activity;
+    app.innerHTML = back(id) + "<h2>" + esc(a.title || a.name) + "</h2>" + (a.note ? '<p class="muted">' + esc(a.note) + "</p>" : "") +
+      (a.cards || []).map((c) => ruleCard(c.title, c.points)).join("") + ruleCard(a.title || a.name, a.rule) + srcNote(a.src) +
+      ((a.questions || []).length ? '<p><a class="btn" href="#/activityq/' + id + '">أسئلة (' + num(a.questions.length) + ")</a></p>" : "");
+  }
+
   /* ---------- النحو والصرف ---------- */
   function grammar(id) {
     const l = lessonById(id), g = l.grammar;
@@ -118,7 +129,8 @@
   function poetry(id) {
     const l = lessonById(id), p = l.poetry; let hide = 0;
     app.innerHTML = back(id) + "<h2>" + esc(p.title) + '</h2><section class="card poem" id="pm"></section><p class="row"><button class="btn" id="rd">🔊 قراءة بيتًا بيتًا</button><button class="btn alt" id="mem">حفظ: أخفِ كلمات أكثر</button><button class="btn alt" id="shw">إظهار الكل</button></p>' +
-      ((p.meanings || []).length ? '<section class="card"><h3>معاني الكلمات</h3><table class="vt">' + p.meanings.map((m) => "<tr><th>" + esc(m.w) + "</th><td>" + esc(m.m) + "</td></tr>").join("") + "</table></section>" : "") + srcNote(p.src);
+      ((p.meanings || []).length ? '<section class="card"><h3>معاني الكلمات</h3><table class="vt">' + p.meanings.map((m) => "<tr><th>" + esc(m.w) + "</th><td>" + esc(m.m) + "</td></tr>").join("") + "</table></section>" : "") +
+      ruleCard("ملاحظات", p.notes) + srcNote(p.src) + ((p.questions || []).length ? '<p><a class="btn" href="#/poetryq/' + id + '">أسئلة النص (' + num(p.questions.length) + ")</a></p>" : "");
     const lines = p.lines.map((x) => (Array.isArray(x) ? x.join("   ") : x));
     const seeds = lines.map((ln) => shuffle(ln.split(/\s+/).map((w, i) => i)));
     const draw = (hl) => { $("#pm").innerHTML = lines.map((ln, li) => '<div class="pl' + (hl === li ? " hl" : "") + '">' + ln.split(/\s+/).map((w, i) => { const hidden = seeds[li].indexOf(i) < Math.round(hide * seeds[li].length); return hidden ? '<span class="gap">＿＿</span>' : esc(w); }).join(" ") + "</div>").join(""); };
@@ -153,7 +165,7 @@
   }
 
   /* ---------- التوجيه ---------- */
-  const routes = { "": home, lesson, reading, vocab, grammar, spelling, writing, poetry, cards, practice, mistakes, parent, extras: extrasView,
+  const routes = { "": home, lesson, reading, vocab, grammar, spelling, writing, poetry, activity, cards, activityq: (id) => round(id, "activity", "أسئلة"), poetryq: (id) => round(id, "poetry", "أسئلة النص"), practice, mistakes, parent, extras: extrasView,
     readq: (id) => round(id, "reading", "أسئلة الفهم"), vocabq: (id) => round(id, "vocab", "المفردات"), grammarq: (id) => round(id, "grammar", "النحو"),
     spellq: (id) => round(id, "spelling", "الإملاء") };
   function route() {
