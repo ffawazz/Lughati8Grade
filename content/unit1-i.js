@@ -3,7 +3,7 @@
 (function () {
   const L = window.LUGHATI;
   const SP = (tag, q, a, why, src) => ({ type: "open", skill: "speaking", tag, src, q, a, why });
-  const RD = (tag, q, o, why, src, kind) => ({ type: "mcq", skill: "reading", tag, src, q, o, a: 0, why, kind });
+  const RD = (tag, q, o, why, src, kind) => ({ type: "mcq", skill: "reading", tag, src: /مضاف/.test(src) ? src : src + " (الخيارات الخاطئة مضافة)", q, o, a: 0, why, kind });
 
   L.addLessons(1, "تقنيات", [
     /* ---------- التحدث: إجراء مقابلة ---------- */

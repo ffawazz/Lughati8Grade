@@ -3,7 +3,7 @@
 (function () {
   const L = window.LUGHATI;
   const AO = (tag, q, a, why, src, kind) => ({ type: "open", skill: "reading", tag, src, q, a, why, kind });
-  const MC = (tag, q, o, why, src, kind) => ({ type: "mcq", skill: "reading", tag, src, q, o, a: 0, why, kind });   // الصحيح أولًا؛ يُخلط الترتيب عند العرض
+  const MC = (tag, q, o, why, src, kind) => ({ type: "mcq", skill: "reading", tag, src: /مضاف/.test(src) ? src : src + " (الخيارات الخاطئة مضافة)", q, o, a: 0, why, kind });   // الصحيح أولًا؛ يُخلط الترتيب عند العرض
 
   L.addLessons(2, "نوادر وقيم", [{
     id: "u2-sadaqa", n: 125, title: "الفهم القرائي: الصدقة والكوب", page: "١٢٥–١٣٥",

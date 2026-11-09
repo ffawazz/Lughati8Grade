@@ -3,7 +3,7 @@
    النصوص منقولة من صور صفحات الكتاب؛ القصيدة نُقلت من الصورة مكبّرة. إجابات الكتاب هي المكتوبة بخط اليد في النسخة المحلولة. */
 (function () {
   const L = window.LUGHATI;
-  const mc = (skill, tag, q, o, src, why, kind) => ({ type: "mcq", skill, tag, src, q, o, a: 0, why, kind });   // الصحيح أولًا؛ يُخلط الترتيب عند العرض
+  const mc = (skill, tag, q, o, src, why, kind) => ({ type: "mcq", skill, tag, src: /مضاف/.test(src) ? src : src + " (الخيارات الخاطئة مضافة)", q, o, a: 0, why, kind });   // الصحيح أولًا؛ يُخلط الترتيب عند العرض
   const open = (skill, tag, q, a, why, src, kind) => ({ type: "open", skill, tag, src, q, a, why, kind });
   const tf = (skill, tag, q, a, why, src) => ({ type: "tf", skill, tag, src, q, a, why });
   const POS = ["بداية الفقرة", "نهاية الفقرة", "وسط الفقرة"];

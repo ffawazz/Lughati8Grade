@@ -3,7 +3,7 @@
 (function () {
   const L = window.LUGHATI;
   const AO = (skill, tag, q, a, why, src, kind) => ({ type: "open", skill, tag, src, q, a, why, kind });
-  const MC = (skill, tag, q, o, why, src, kind) => ({ type: "mcq", skill, tag, src, q, o, a: 0, why, kind });   // الصحيح أولًا؛ يُخلط الترتيب عند العرض
+  const MC = (skill, tag, q, o, why, src, kind) => ({ type: "mcq", skill, tag, src: /مضاف/.test(src) ? src : src + " (الخيارات الخاطئة مضافة)", q, o, a: 0, why, kind });   // الصحيح أولًا؛ يُخلط الترتيب عند العرض
 
   L.addLessons(2, "نوادر وقيم", [
     /* ---------------- جحا والوليمة ---------------- */
