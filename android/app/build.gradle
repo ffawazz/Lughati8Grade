@@ -1,0 +1,24 @@
+plugins { id "com.android.application" }
+
+android {
+    namespace "sa.lughati.app"
+    compileSdk 34
+    buildToolsVersion "34.0.0"
+    defaultConfig {
+        applicationId "sa.lughati.app"
+        minSdk 21
+        targetSdk 34
+        versionCode 1
+        versionName "1.0"
+    }
+    buildTypes { debug { debuggable true } }
+    compileOptions { sourceCompatibility JavaVersion.VERSION_17; targetCompatibility JavaVersion.VERSION_17 }
+    sourceSets { main { assets.srcDirs += "$buildDir/generated/webassets" } }
+}
+
+// index.html lives at the repo root; copy it into the APK assets on every build.
+tasks.register("copyWebAssets", Copy) {
+    from("${rootProject.projectDir}/../index.html")
+    into("$buildDir/generated/webassets")
+}
+tasks.matching { it.name.startsWith("merge") && it.name.endsWith("Assets") }.configureEach { dependsOn "copyWebAssets" }
