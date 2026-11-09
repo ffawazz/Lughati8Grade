@@ -16,9 +16,12 @@ android {
     sourceSets { main { assets.srcDirs += "$buildDir/generated/webassets" } }
 }
 
-// index.html lives at the repo root; copy it into the APK assets on every build.
+// The web app lives at the repo root (index.html + css/js/data); copy it into the APK assets on every build.
 tasks.register("copyWebAssets", Copy) {
-    from("${rootProject.projectDir}/../index.html")
+    from("${rootProject.projectDir}/..") {
+        include "index.html", "*.css", "*.js", "manifest.json", "icons/**", "content/**"
+        exclude "sw.js"   // service worker is only for the hosted (GitHub Pages) version
+    }
     into("$buildDir/generated/webassets")
 }
 tasks.matching { it.name.startsWith("merge") && it.name.endsWith("Assets") }.configureEach { dependsOn "copyWebAssets" }
