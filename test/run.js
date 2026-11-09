@@ -33,6 +33,26 @@ const check = (c, m) => { if (!c) errs.push("FAIL: " + m); else console.log("ok 
   await p.goto(app + "#/readq/u1-l1");
   for (let i = 0; i < 5; i++) { await p.click(".opt >> nth=0"); await p.click("#nx"); }
   check((await p.textContent("#app")).includes("جولة جديدة"), "reading round (5 questions) reaches summary");
+  /* الدرس الثاني: نص طويل مشكَّل + أسئلة مفتوحة (الكتاب) + مطابقة */
+  await p.goto(app + "#/reading/u1-l2"); await noOverflow(p, "long book text (lesson 2) on phone"); await shot(p, "real-reading2");
+  check((await p.$$(".text p")).length === 14, "lesson 2 text has 14 paragraphs");
+  await p.goto(app + "#/readq/u1-l2");
+  let openSeen = 0, matchSeen = 0;
+  for (let i = 0; i < 6; i++) {
+    if (await p.$("#qcard textarea")) { openSeen++; await p.fill("#ans", "إجابتي"); await p.click("#chk"); check((await p.textContent(".ans")).includes("إجابة الكتاب"), "open question reveals the book answer"); await p.click("#no"); }
+    else if (await p.$(".matchgrid")) { matchSeen++; for (let k = 0; k < 4; k++) { await p.click("[data-l='" + k + "']"); await p.click("[data-r='" + k + "']"); } }
+    await p.click("#nx");
+  }
+  check(openSeen === 5 && matchSeen === 1, "lesson 2 round = 5 open (book) + 1 match: " + openSeen + "/" + matchSeen);
+  await p.goto(app + "#/vocab/u1-l2"); check((await p.$$(".vt tr")).length === 6, "lesson 2 vocabulary table has 6 words");
+  await p.goto(app + "#/vocabq/u1-l2");
+  for (let i = 0; i < 10; i++) {
+    if (await p.$(".matchgrid")) { for (let k = 0; k < 4; k++) { await p.click("[data-l='" + k + "']"); await p.click("[data-r='" + k + "']"); } }
+    else if (await p.$(".opt")) await p.click(".opt >> nth=0"); else break;
+    await p.click("#nx");
+    if ((await p.textContent("#app")).includes("جولة جديدة")) break;
+  }
+  check((await p.textContent("#app")).includes("جولة جديدة"), "lesson 2 vocabulary round completes (mcq + match mix)");
   await p.goto(app + "#/vocabq/u1-l1");
   for (let i = 0; i < 10; i++) { await p.click(".opt >> nth=0"); await p.click("#nx"); }
   check((await p.textContent("#app")).includes("جولة جديدة"), "vocab round of 10 completes");

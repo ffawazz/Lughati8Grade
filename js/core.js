@@ -3,6 +3,9 @@
   "use strict";
   const L = (window.LUGHATI = window.LUGHATI || { units: [] });
 
+  /* إضافة دروس إلى وحدة (تُنشأ إن لم تكن موجودة) من ملفات المحتوى */
+  L.addLessons = (id, title, lessons) => { let u = L.units.find((x) => x.id === id); if (!u) { u = { id, title, lessons: [] }; L.units.push(u); } u.lessons.push(...lessons); };
+
   /* ---------- أدوات ---------- */
   L.$ = (s, r) => (r || document).querySelector(s);
   L.esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));

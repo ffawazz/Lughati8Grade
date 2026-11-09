@@ -11,6 +11,7 @@
     lessons.forEach((l) => {
       ((l.reading && l.reading.questions) || []).forEach((q, i) => add(q, l.id + ":r" + i, { sec: "reading", lid: l.id }));
       ((l.grammar && l.grammar.exercises) || []).forEach((q, i) => add(q, l.id + ":g" + i, { sec: "grammar", lid: l.id }));
+      (l.vocabQ || []).forEach((q, i) => add(q, l.id + ":vq" + i, { sec: "vocab", lid: l.id }));
       ((l.spelling && l.spelling.exercises) || []).forEach((q, i) => add(q, l.id + ":s" + i, { sec: "spelling", lid: l.id }));
       ((l.spelling && l.spelling.dictation) || []).forEach((d, i) => add({ type: "dictation", skill: "spelling", tag: d.tag || "إملاء", text: d.text, src: d.src, q: "أستمع ثم أكتب الجملة" }, l.id + ":d" + i, { sec: "spelling", lid: l.id }));
       ((l.spelling && l.spelling.pen) || []).forEach((d, i) => add({ type: "pen", skill: "spelling", tag: "رسم الحروف", src: d.src, q: "أكتب الكلمة بخط الرقعة", text: d.text }, l.id + ":p" + i, { sec: "spelling", lid: l.id }));
@@ -86,6 +87,15 @@
       body.innerHTML = '<input class="inp" id="ans" autocomplete="off" aria-label="إجابتي"><p><button class="btn" id="chk">تحقق</button></p><div id="padhost"></div>';
       const check = () => { const v = $("#ans", body).value; const ok = (Array.isArray(q.a) ? q.a : [q.a]).some((a) => norm(a) === norm(v)); finish(ok, ok ? "" : '<div class="ans">الإجابة: ' + esc(Array.isArray(q.a) ? q.a[0] : q.a) + "</div>"); };
       $("#chk", body).onclick = check; $("#ans", body).onkeydown = (e) => { if (e.key === "Enter") check(); };
+    } else if (q.type === "open") {
+      // سؤال مفتوح من الكتاب: تكتب الطالبة (لوحة/لوحة مفاتيح) ثم ترى إجابة الكتاب وتؤكد بنفسها
+      body.innerHTML = '<div class="tabs2"><button class="tok on" data-m="type">⌨️ كتابة</button><button class="tok" data-m="pen">✍️ قلم</button></div><div id="typebox"><textarea class="inp" id="ans" rows="3" aria-label="إجابتي"></textarea></div><div id="padhost" hidden></div><p><button class="btn" id="chk">أرِني إجابة الكتاب</button></p>';
+      let pad = null;
+      body.querySelectorAll("[data-m]").forEach((b) => b.onclick = () => { const m = b.dataset.m; body.querySelectorAll("[data-m]").forEach((x) => x.classList.toggle("on", x === b));
+        $("#typebox", body).hidden = m !== "type"; $("#padhost", body).hidden = m !== "pen"; if (m === "pen" && !pad) pad = L.pad($("#padhost", body), { height: 160 }); });
+      $("#chk", body).onclick = () => { $("#chk", body).hidden = true; const box = document.createElement("div"); box.className = "ans";
+        box.innerHTML = "<div>إجابة الكتاب:</div><div><b>" + (Array.isArray(q.a) ? q.a.map(esc).join("<br>") : esc(q.a)) + '</b></div><p>قارني إجابتك بإجابة الكتاب، ثم أكّدي:</p><button class="btn" id="yes">إجابتي تؤدي المعنى</button> <button class="btn alt" id="no">تحتاج إلى تحسين</button>';
+        body.appendChild(box); $("#yes", box).onclick = () => { box.remove(); finish(true); }; $("#no", box).onclick = () => { box.remove(); finish(false); }; };
     } else if (q.type === "dictation" || q.type === "pen") {
       const isDict = q.type === "dictation";
       body.innerHTML = (isDict ? '<p><button class="btn" id="play">🔊 استمعي للجملة</button> <button class="btn alt" id="slow">🐢 ببطء</button></p><p class="muted" id="novoice" hidden>لا يوجد صوت عربي على هذا الجهاز؛ اطلبي من ولي الأمر قراءة الجملة.</p>' : '<p class="bigword">' + esc(q.text) + "</p>") +
