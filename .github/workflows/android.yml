@@ -2,7 +2,7 @@ name: Build Android APK
 on:
   push:
     branches: [main, ccr-97115a80-zb8s5j]
-    paths: ["index.html", "*.css", "*.js", "content/**", "icons/**", "android/**", ".github/workflows/android.yml"]
+    paths: ["index.html", "css/**", "js/**", "content/**", "icons/**", "android/**", ".github/workflows/android.yml"]
   workflow_dispatch:
 jobs:
   apk:

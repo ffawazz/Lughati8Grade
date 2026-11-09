@@ -17,10 +17,9 @@ android {
 }
 
 // The web app lives at the repo root (index.html + css/js/data); copy it into the APK assets on every build.
-tasks.register("copyWebAssets", Copy) {
+tasks.register("copyWebAssets", Sync) {   // Sync (not Copy) so removed files never linger in the APK
     from("${rootProject.projectDir}/..") {
-        include "index.html", "*.css", "*.js", "manifest.json", "icons/**", "content/**"
-        exclude "sw.js"   // service worker is only for the hosted (GitHub Pages) version
+        include "index.html", "css/**", "js/**", "content/**", "icons/**", "manifest.json"
     }
     into("$buildDir/generated/webassets")
 }
