@@ -1,0 +1,12 @@
+{
+  "name": "لغتي – ثاني متوسط",
+  "short_name": "لغتي",
+  "description": "مراجعة مادة لغتي للصف الثاني المتوسط – الفصل الدراسي الأول",
+  "lang": "ar",
+  "dir": "rtl",
+  "start_url": "./",
+  "display": "standalone",
+  "background_color": "#f5f7f4",
+  "theme_color": "#1f6f5c",
+  "icons": [{ "src": "icons/icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }]
+}
