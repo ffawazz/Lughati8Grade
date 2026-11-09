@@ -6,7 +6,7 @@
   title: "تقنيات",
   lessons: [
     {
-      id: "u1-l1",
+      id: "u1-l1", n: 16,
       title: "نص المدخل: عالم فيزيائي",
       page: "١٦–١٩",
       reading: {

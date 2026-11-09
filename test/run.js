@@ -53,6 +53,21 @@ const check = (c, m) => { if (!c) errs.push("FAIL: " + m); else console.log("ok 
     if ((await p.textContent("#app")).includes("جولة جديدة")) break;
   }
   check((await p.textContent("#app")).includes("جولة جديدة"), "lesson 2 vocabulary round completes (mcq + match mix)");
+  /* الدرس الثالث (الإملاء): أنواع الأسئلة كلها */
+  await p.goto(app + "#/spelling/u1-l3"); check((await p.$$(".pts li")).length === 7, "hamza lesson shows the book rule (7 points)"); await noOverflow(p, "spelling rule page");
+  await p.goto(app + "#/spellq/u1-l3");
+  const sk = new Set();
+  for (let i = 0; i < 10; i++) {
+    if (await p.$("#play")) { sk.add("dictation"); await p.fill("#ans", "كان مسلما"); await p.click("#chk"); }
+    else if (await p.$(".bigword")) { sk.add("pen"); await p.click("#chk"); await p.click("#yes"); }
+    else if (await p.$(".inp")) { sk.add("short"); await p.fill("#ans", "x"); await p.click("#chk"); }
+    else if (await p.$(".opt")) { sk.add("mcq"); await p.click(".opt >> nth=0"); }
+    else break;
+    await p.click("#nx");
+  }
+  check((await p.textContent("#app")).includes("جولة جديدة"), "spelling round of 10 completes; types seen: " + [...sk]);
+  const hz = await p.evaluate(() => JSON.parse(localStorage.getItem("lughati.v1")).tags["همزة متوسطة"]);
+  check(hz && hz.n >= 1, "hamza results are tracked per weak-area tag for the parent dashboard");
   await p.goto(app + "#/vocabq/u1-l1");
   for (let i = 0; i < 10; i++) { await p.click(".opt >> nth=0"); await p.click("#nx"); }
   check((await p.textContent("#app")).includes("جولة جديدة"), "vocab round of 10 completes");

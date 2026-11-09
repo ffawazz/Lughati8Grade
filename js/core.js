@@ -4,7 +4,7 @@
   const L = (window.LUGHATI = window.LUGHATI || { units: [] });
 
   /* إضافة دروس إلى وحدة (تُنشأ إن لم تكن موجودة) من ملفات المحتوى */
-  L.addLessons = (id, title, lessons) => { let u = L.units.find((x) => x.id === id); if (!u) { u = { id, title, lessons: [] }; L.units.push(u); } u.lessons.push(...lessons); };
+  L.addLessons = (id, title, lessons) => { let u = L.units.find((x) => x.id === id); if (!u) { u = { id, title, lessons: [] }; L.units.push(u); } u.lessons.push(...lessons); u.lessons.sort((a, b) => (a.n || 0) - (b.n || 0)); /* الترتيب بحسب صفحة الكتاب */ };
 
   /* ---------- أدوات ---------- */
   L.$ = (s, r) => (r || document).querySelector(s);
