@@ -117,12 +117,12 @@
   const CHECK = ["مقدمة واضحة", "نقاط رئيسة مرتبة", "خاتمة", "إملاء سليم (همزات، تاء مربوطة، ألف لينة)", "علامات الترقيم"];
   function writing(id) {
     const l = lessonById(id), w = l.writing;
-    app.innerHTML = back(id) + "<h2>التعبير</h2><section class=\"card\"><h3>المهمة</h3><p>" + esc(w.task) + "</p>" + srcNote(w.src) + '</section><section class="card"><textarea class="inp" id="wt" rows="6" placeholder="اكتبي هنا… أو استخدمي القلم"></textarea><div id="ph"></div></section>' +
+    app.innerHTML = back(id) + "<h2>" + esc(w.title || "التعبير") + "</h2>" + (w.cards || []).map((c) => ruleCard(c.title, c.points)).join("") + "<section class=\"card\"><h3>المهمة</h3><p>" + esc(w.task) + "</p>" + srcNote(w.src) + '</section><section class="card"><textarea class="inp" id="wt" rows="6" placeholder="اكتبي هنا… أو استخدمي القلم"></textarea><div id="ph"></div></section>' +
       '<section class="card"><h3>قائمة المراجعة</h3>' + (w.checklist || CHECK).map((c, i) => '<label class="ck"><input type="checkbox" data-i="' + i + '"> ' + esc(c) + "</label>").join("") + '</section><p><button class="btn" id="fin">أنهيت — أرِني النموذج</button></p><div id="md"></div>';
     L.pad($("#ph"), { height: 220 });
     $("#fin").onclick = () => { const cks = [...app.querySelectorAll(".ck input")]; const ok = cks.filter((c) => c.checked).length;
       L.record("writing", "تعبير", ok >= Math.ceil(cks.length * 0.8)); S.writing[id] = { d: L.today(), ok, n: cks.length }; L.markPractice(); L.save();
-      $("#md").innerHTML = '<section class="card"><h3>نموذج</h3>' + (w.model ? "<p>" + esc(w.model) + "</p>" + srcNote(w.modelSrc || w.src) : '<p class="muted">لا يوجد نموذج في الكتاب لهذه المهمة.</p>') + "<p>قيّمتِ نفسك: " + num(ok) + " من " + num(cks.length) + "</p></section>"; };
+      $("#md").innerHTML = '<section class="card"><h3>نموذج</h3>' + (w.model ? (Array.isArray(w.model) ? w.model : [w.model]).map((m) => "<p>" + esc(m) + "</p>").join("") + srcNote(w.modelSrc || w.src) : '<p class="muted">لا يوجد نموذج في الكتاب لهذه المهمة.</p>') + "<p>قيّمتِ نفسك: " + num(ok) + " من " + num(cks.length) + "</p></section>"; };
   }
 
   /* ---------- الشعر ---------- */
