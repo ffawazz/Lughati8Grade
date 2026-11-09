@@ -4,7 +4,10 @@
   const L = (window.LUGHATI = window.LUGHATI || { units: [] });
 
   /* إضافة دروس إلى وحدة (تُنشأ إن لم تكن موجودة) من ملفات المحتوى */
-  L.addLessons = (id, title, lessons) => { let u = L.units.find((x) => x.id === id); if (!u) { u = { id, title, lessons: [] }; L.units.push(u); } u.lessons.push(...lessons); u.lessons.sort((a, b) => (a.n || 0) - (b.n || 0)); /* الترتيب بحسب صفحة الكتاب */ };
+  L.addLessons = (id, title, lessons) => { let u = L.units.find((x) => x.id === id); if (!u) { u = { id, title, lessons: [] }; L.units.push(u); } u.lessons.push(...lessons); u.lessons.sort((a, b) => (a.n || 0) - (b.n || 0)); /* الترتيب بحسب صفحة الكتاب */ L.units.sort((a, b) => a.id - b.id); };
+  /* الدرس الذي تبدأ منه الطالبة (يُضبط أول مرة فقط؛ بعدها يغيّره ولي الأمر) */
+  L.startAt = "u3-hamza-end";
+  L.initCurrent = () => { if (S.init) return; const i = L.lessons().findIndex((l) => l.id === L.startAt); if (i >= 0) S.current = i; S.init = true; L.save(); };
 
   /* ---------- أدوات ---------- */
   L.$ = (s, r) => (r || document).querySelector(s);

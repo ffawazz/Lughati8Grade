@@ -85,7 +85,7 @@
       };
     } else if (q.type === "short") {
       body.innerHTML = '<input class="inp" id="ans" autocomplete="off" aria-label="إجابتي"><p><button class="btn" id="chk">تحقق</button></p><div id="padhost"></div>';
-      const check = () => { const v = $("#ans", body).value; const ok = (Array.isArray(q.a) ? q.a : [q.a]).some((a) => norm(a) === norm(v)); finish(ok, ok ? "" : '<div class="ans">الإجابة: ' + esc(Array.isArray(q.a) ? q.a[0] : q.a) + "</div>"); };
+      const check = () => { const v = $("#ans", body).value; const ok = (Array.isArray(q.a) ? q.a : [q.a]).some((a) => norm(a, q.strict) === norm(v, q.strict)); finish(ok, ok ? "" : '<div class="ans">الإجابة: ' + esc(Array.isArray(q.a) ? q.a[0] : q.a) + "</div>"); };
       $("#chk", body).onclick = check; $("#ans", body).onkeydown = (e) => { if (e.key === "Enter") check(); };
     } else if (q.type === "open") {
       // سؤال مفتوح من الكتاب: تكتب الطالبة (لوحة/لوحة مفاتيح) ثم ترى إجابة الكتاب وتؤكد بنفسها

@@ -2,7 +2,7 @@
 (function () {
   "use strict";
   const L = window.LUGHATI, { $, esc, num, shuffle } = L, S = L.state;
-  const app = $("#app");
+  const app = $("#app"); L.initCurrent();
   const SKILLS = { reading: "فهم المقروء", vocab: "المفردات", grammar: "النحو والصرف", spelling: "الإملاء", writing: "التعبير", poetry: "الشعر" };
   const pct = (a, b) => (b ? Math.round(a / b * 100) : 0);
   const lessonById = (id) => L.lessons().find((l) => l.id === id);

@@ -23,6 +23,8 @@ const check = (c, m) => { if (!c) errs.push("FAIL: " + m); else console.log("ok 
   let p = await mk({ width: 390, height: 800 });
   await p.goto(app);
   check((await p.textContent("#app")).includes("عالم فيزيائي"), "home lists the real lesson");
+  check((await p.textContent(".hero .btn")).includes("الهمزة المتطرفة"), "fresh install starts at the hamza (end) lesson, as requested");
+  check((await p.$$(".lrow.lock")).length === 0, "all lessons so far are unlocked (she is on the last one)");
   await noOverflow(p, "home"); await shot(p, "real-home");
   await p.goto(app + "#/lesson/u1-l1");
   check((await p.$$(".mod.off")).length === 2, "lesson shows writing+poetry as empty (honest, nothing invented)");
